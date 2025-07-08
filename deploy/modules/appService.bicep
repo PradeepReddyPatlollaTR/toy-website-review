@@ -11,6 +11,12 @@ param appServiceAppName string
 ])
 param environmentType string
 
+@description('The name of the storage account to deploy. This name must be globally unique.')
+param storageAccountName string
+
+@description('The name of the queue to deploy for processing orders.')
+param processOrderQueueName string
+
 var appServicePlanName = 'toy-product-launch-plan'
 var appServicePlanSkuName = (environmentType == 'prod') ? 'P2_v3' : 'F1'
 
@@ -22,12 +28,24 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   }
 }
 
-resource appServiceApp 'Microsoft.Web/sites@2022-03-01' = {
+resource appServiceApp 'Microsoft.Web/sites@2024-04-01' = {
   name: appServiceAppName
   location: location
   properties: {
     serverFarmId: appServicePlan.id
     httpsOnly: true
+    siteConfig: {
+      appSettings: [
+        {
+          name: 'StorageAccountName'
+          value: storageAccountName
+        }
+        {
+          name: 'ProcessOrderQueueName'
+          value: processOrderQueueName
+        }
+      ]
+    }
   }
 }
 
